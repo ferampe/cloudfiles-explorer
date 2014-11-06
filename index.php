@@ -4,8 +4,8 @@ use OpenCloud\Rackspace;
 
 // Instantiate a Rackspace client.
 $client = new Rackspace(Rackspace::US_IDENTITY_ENDPOINT, array(
-    'username' => 'username', // Colocar el username de su cuenta rackspace
-    'apiKey'   => 'apiKey'//Colocar el token que esta en el panel de Administracion de rackspace
+    'username' => 'Tu username aqui', // Colocar el username de su cuenta rackspace
+    'apiKey'   => 'Tu api key aqui'//Colocar el token que esta en el panel de Administracion de rackspace
 ));
 
 
@@ -20,7 +20,12 @@ $options = array(
 );
 
 $objects = $container->objectList($options);
-$container->enableCdn();
+
+// Activar URL Temporales
+$account = $objectStoreService->getAccount();
+$account->setTempUrlSecret('miclavesecretaaqui');
+$expirationTimeInSeconds = 1800; // Media hora
+$httpMethodAllowed = 'GET';
 
 ?>
 <!DOCTYPE html>
@@ -74,7 +79,10 @@ $container->enableCdn();
 			{
 				echo '<tr><td><i class="glyphicon glyphicon-folder-close"></i> <a href="'.$_SERVER["PHP_SELF"].'?folder='.$object->getName().'%2F">'.$name."</a></td></tr>";
 			}else{
-				echo '<tr><td><a href="'.$object->getPublicUrl().'"><i class="glyphicon glyphicon-download"></i> '.$name.'</a></td></tr>';
+				
+				$tempUrl = $object->getTemporaryUrl($expirationTimeInSeconds, $httpMethodAllowed);
+
+				echo '<tr><td><a href="'.$tempUrl.'"><i class="glyphicon glyphicon-download"></i> '.$name.'</a></td></tr>';
 			}
 		}
 	}
