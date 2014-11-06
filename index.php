@@ -4,18 +4,18 @@ use OpenCloud\Rackspace;
 
 // Instantiate a Rackspace client.
 $client = new Rackspace(Rackspace::US_IDENTITY_ENDPOINT, array(
-    'username' => 'Tu username aqui', // Colocar el username de su cuenta rackspace
-    'apiKey'   => 'Tu api key aqui'//Colocar el token que esta en el panel de Administracion de rackspace
+    'username' => 'username', // Colocar el username de su cuenta rackspace
+    'apiKey'   => 'apiKey'//Colocar el token que esta en el panel de Administracion de rackspace
 ));
 
 
-$objectStoreService = $client->objectStoreService(null, 'ORD'); //Colocar la region
-$container = $objectStoreService->getContainer('Folders Todos');//Colocar el container
+$objectStoreService = $client->objectStoreService(null, 'DFW'); //Colocar la region
+$container = $objectStoreService->getContainer('photos');//Colocar el container
 $prefix = (isset($_GET['folder']) ? $_GET['folder'] : '');
 
 $options = array(
     'prefix' => $prefix,
-    'limit' => '9000',
+    'limit' => '100',
     'delimiter' => '/'
 );
 
@@ -23,7 +23,7 @@ $objects = $container->objectList($options);
 
 // Activar URL Temporales
 $account = $objectStoreService->getAccount();
-$account->setTempUrlSecret('miclavesecretaaqui');
+$account->setTempUrlSecret('asda65468784643');
 $expirationTimeInSeconds = 1800; // Media hora
 $httpMethodAllowed = 'GET';
 
@@ -71,20 +71,20 @@ $httpMethodAllowed = 'GET';
 	<?php
 	foreach ($objects as $object) {
 
-		if(!preg_match('/\/$/', $object->getName()))
+		//Solo para impresion de nombres
+		//Quita el ultimo slash
+		$name = end(explode('/', preg_replace('/\/$/', "", $object->getName())));
+
+		if($object->isDirectory())
 		{
-			$name = end(explode('/', $object->getName()));
+			echo '<tr><td><i class="glyphicon glyphicon-folder-close"></i> <a href="'.$_SERVER["PHP_SELF"].'?folder='.$object->getName().'">'.$name."</a></td></tr>";
+		}else{
+			$tempUrl = $object->getTemporaryUrl($expirationTimeInSeconds, $httpMethodAllowed);
 
-			if($object->getContentType() == "application/directory")
-			{
-				echo '<tr><td><i class="glyphicon glyphicon-folder-close"></i> <a href="'.$_SERVER["PHP_SELF"].'?folder='.$object->getName().'%2F">'.$name."</a></td></tr>";
-			}else{
-				
-				$tempUrl = $object->getTemporaryUrl($expirationTimeInSeconds, $httpMethodAllowed);
-
-				echo '<tr><td><a href="'.$tempUrl.'"><i class="glyphicon glyphicon-download"></i> '.$name.'</a></td></tr>';
-			}
+			echo '<tr><td><a href="'.$tempUrl.'"><i class="glyphicon glyphicon-download"></i> '.$name.'</a></td></tr>';
 		}
+
+
 	}
 	?>
 </table>
